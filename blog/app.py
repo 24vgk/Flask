@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, g, render_template
 from time import time
 from werkzeug.exceptions import BadRequest
@@ -6,17 +7,24 @@ from blog.views.articles import articles_app
 from blog.views.secret import secret_app
 from blog.models.database import db
 from blog.views.auth import login_manager, auth_app
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.register_blueprint(users_app, url_prefix="/users")
 app.register_blueprint(articles_app, url_prefix="/articles")
 app.register_blueprint(secret_app, url_prefix="/secret")
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/blog.db"
+# app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/blog.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///' + os.path.join(basedir, 'app.db')
+app.config["SQLALCHEMY_MIGRATE_REPO"] = os.path.join(basedir, 'db_repository')
 db.init_app(app)
 app.config["SECRET_KEY"] = "123456789"
 app.register_blueprint(auth_app, url_prefix="/auth")
 login_manager.init_app(app)
+cfg_name = os.environ.get("CONFIG_NAME") or "DevConfig"
+app.config.from_object(f"blog.config.{cfg_name}")
+migrate = Migrate(app, db, compare_type=True)
 
 
 @app.route("/")
