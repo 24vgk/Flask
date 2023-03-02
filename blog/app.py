@@ -1,12 +1,30 @@
+import os
 from flask import Flask, request, g, render_template
 from time import time
 from werkzeug.exceptions import BadRequest
 from blog.views.users import users_app
 from blog.views.articles import articles_app
+from blog.views.secret import secret_app
+from blog.models.database import db
+from blog.views.auth import login_manager, auth_app
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.register_blueprint(users_app, url_prefix="/users")
 app.register_blueprint(articles_app, url_prefix="/articles")
+app.register_blueprint(secret_app, url_prefix="/secret")
+# app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/blog.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///' + os.path.join(basedir, 'app.db')
+app.config["SQLALCHEMY_MIGRATE_REPO"] = os.path.join(basedir, 'db_repository')
+db.init_app(app)
+app.config["SECRET_KEY"] = "123456789"
+app.register_blueprint(auth_app, url_prefix="/auth")
+login_manager.init_app(app)
+cfg_name = os.environ.get("CONFIG_NAME") or "DevConfig"
+app.config.from_object(f"blog.config.{cfg_name}")
+migrate = Migrate(app, db, compare_type=True)
 
 
 @app.route("/")
@@ -86,3 +104,29 @@ def handle_zero_division_error(error):
     print(error)
     app.logger.exception("FUCK")
     return "Never divide by zero!", 400
+
+
+@app.cli.command("init-db")
+def init_db():
+    """
+    Run in your terminal:
+    flask init-db
+    """
+    db.create_all()
+    print("done!")
+
+
+@app.cli.command("create-users")
+def create_users():
+    """
+    Run in your terminal:
+    flask create-users
+    > done! created users: <User #1 'admin'> <User #2 'james'>
+    """
+    from blog.models import User
+    admin = User(username="admin", is_staff=True)
+    james = User(username="james")
+    db.session.add(admin)
+    db.session.add(james)
+    db.session.commit()
+    print("done! created users:", admin, james)
