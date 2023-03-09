@@ -8,6 +8,7 @@ from blog.views.secret import secret_app
 from blog.models.database import db
 from blog.views.auth import login_manager, auth_app
 from flask_migrate import Migrate
+from blog.security import flask_bcrypt
 
 app = Flask(__name__)
 app.register_blueprint(users_app, url_prefix="/users")
@@ -25,6 +26,7 @@ login_manager.init_app(app)
 cfg_name = os.environ.get("CONFIG_NAME") or "DevConfig"
 app.config.from_object(f"blog.config.{cfg_name}")
 migrate = Migrate(app, db, compare_type=True)
+flask_bcrypt.init_app(app)
 
 
 @app.route("/")
@@ -106,27 +108,20 @@ def handle_zero_division_error(error):
     return "Never divide by zero!", 400
 
 
-@app.cli.command("init-db")
-def init_db():
+@app.cli.command("create-admin")
+def create_admin():
     """
     Run in your terminal:
-    flask init-db
-    """
-    db.create_all()
-    print("done!")
-
-
-@app.cli.command("create-users")
-def create_users():
-    """
-    Run in your terminal:
-    flask create-users
-    > done! created users: <User #1 'admin'> <User #2 'james'>
+    flask create-admin
+    > create admin: <User #1 'admin'>
     """
     from blog.models import User
     admin = User(username="admin", is_staff=True)
-    james = User(username="james")
+    admin.password = os.environ.get("ADMIN") or "adminpass"
     db.session.add(admin)
-    db.session.add(james)
     db.session.commit()
-    print("done! created users:", admin, james)
+    print("created admin:", admin)
+
+
+if __name__ == '__main__':
+    create_admin()

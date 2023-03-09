@@ -10,7 +10,7 @@ services:
     volumes:
         - ./blog:/app/blog
     ports:
-      - 5000:5000
+      - 5001:5001
     depends_on:
       - pg
 
