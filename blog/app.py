@@ -9,11 +9,13 @@ from blog.models.database import db
 from blog.views.auth import login_manager, auth_app
 from flask_migrate import Migrate
 from blog.security import flask_bcrypt
+from blog.views.authors import authors_app
 
 app = Flask(__name__)
 app.register_blueprint(users_app, url_prefix="/users")
 app.register_blueprint(articles_app, url_prefix="/articles")
 app.register_blueprint(secret_app, url_prefix="/secret")
+app.register_blueprint(authors_app, url_prefix="/authors")
 # app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/blog.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -113,7 +115,7 @@ def create_admin():
     """
     Run in your terminal:
     flask create-admin
-    > create admin: <User #1 'admin'>
+    > create admin: <User #4 'admin'>
     """
     from blog.models import User
     admin = User(username="admin", is_staff=True)

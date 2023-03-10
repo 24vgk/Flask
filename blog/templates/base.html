@@ -26,7 +26,12 @@
          </button>
          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
            <div class="navbar-nav">
-             {% for (endpoint, label) in [('users_app.list', 'Users'), ('articles_app.list', 'Articles'), ('secret_app.secret', 'Secret')] %}
+             {% for (endpoint, label) in [
+               ('users_app.list', 'Users'),
+               ('articles_app.list', 'Articles'),
+               ('secret_app.secret', 'Secret'),
+               ('authors_app.list', 'Authors')
+               ] %}
                <a href="{{ url_for(endpoint) }}"
                   class="nav-link {% if request.endpoint == endpoint -%}active{%- endif %}">{{ label }}
                </a>

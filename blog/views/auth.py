@@ -110,3 +110,9 @@ def register():
             login_user(user)
             return redirect(url_for("index"))
     return render_template("auth/register.html", form=form, error=error)
+
+
+if __name__ == '__main__':
+    pass
+    # user = 2
+    # if not user.validate_password(form.password.data):
