@@ -13,3 +13,6 @@ class Author(db.Model):
     body = Column(Text, nullable=False, default="", server_default="")
     dt_created = Column(DateTime, default=datetime.utcnow, server_default=func.now())
     dt_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __str__(self):
+         return self.user.username

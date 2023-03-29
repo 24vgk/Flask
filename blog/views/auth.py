@@ -52,7 +52,7 @@ def login_as():
 @auth_app.route("/login/", methods=["GET", "POST"], endpoint="login")
 def login():
     if current_user.is_authenticated:
-        return redirect("index")
+        return redirect("/")
     form = LoginForm(request.form)
     if request.method == "POST" and form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).one_or_none()

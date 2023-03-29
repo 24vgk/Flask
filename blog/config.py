@@ -8,12 +8,15 @@ class BaseConfig(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = "123456789"
     WTF_CSRF_ENABLED = True
+    FLASK_ADMIN_SWATCH = 'cosmo'
 
 
 class DevConfig(BaseConfig):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+    FLASK_ADMIN_SWATCH = 'cosmo'
 
 
 class TestingConfig(BaseConfig):
     TESTING = True
+    FLASK_ADMIN_SWATCH = 'cosmo'
