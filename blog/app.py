@@ -1,12 +1,36 @@
+import os
 from flask import Flask, request, g, render_template
 from time import time
 from werkzeug.exceptions import BadRequest
 from blog.views.users import users_app
 from blog.views.articles import articles_app
+from blog.views.secret import secret_app
+from blog.models.database import db
+from blog.views.auth import login_manager, auth_app
+from flask_migrate import Migrate
+from blog.security import flask_bcrypt
+from blog.views.authors import authors_app
+from blog.admin import admin
 
 app = Flask(__name__)
 app.register_blueprint(users_app, url_prefix="/users")
 app.register_blueprint(articles_app, url_prefix="/articles")
+app.register_blueprint(secret_app, url_prefix="/secret")
+app.register_blueprint(authors_app, url_prefix="/authors")
+# app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/blog.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///' + os.path.join(basedir, 'app.db')
+app.config["SQLALCHEMY_MIGRATE_REPO"] = os.path.join(basedir, 'db_repository')
+db.init_app(app)
+app.config["SECRET_KEY"] = "123456789"
+app.register_blueprint(auth_app, url_prefix="/auth")
+login_manager.init_app(app)
+cfg_name = os.environ.get("CONFIG_NAME") or "DevConfig"
+app.config.from_object(f"blog.config.{cfg_name}")
+migrate = Migrate(app, db, compare_type=True)
+flask_bcrypt.init_app(app)
+admin.init_app(app)
 
 
 @app.route("/")
@@ -86,3 +110,38 @@ def handle_zero_division_error(error):
     print(error)
     app.logger.exception("FUCK")
     return "Never divide by zero!", 400
+
+
+@app.cli.command("create-admin")
+def create_admin():
+    """
+    Run in your terminal:
+    flask create-admin
+    > create admin: <User #4 'admin'>
+    """
+    from blog.models import User
+    admin = User(username="admin", is_staff=True)
+    admin.password = os.environ.get("ADMIN") or "adminpass"
+    db.session.add(admin)
+    db.session.commit()
+    print("created admin:", admin)
+
+
+@app.cli.command("create-tags")
+def create_tags():
+    """
+    Run in your terminal:
+    ➜ flask create-tags
+    """
+    from blog.models import Tag
+    for name in [
+            "flask",
+            "django",
+            "python",
+            "sqlalchemy",
+            "news",
+        ]:
+            tag = Tag(name=name)
+            db.session.add(tag)
+            db.session.commit()
+            print("created tags")
